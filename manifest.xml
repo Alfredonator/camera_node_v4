@@ -1,0 +1,14 @@
+<package>
+  <description brief="camera_node_v4">
+
+     camera_node_v4
+
+  </description>
+  <author>Szymon</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/camera_node_v4</url>
+  <depend package="std_msgs"/>
+  <depend package="rospy"/>
+
+</package>
