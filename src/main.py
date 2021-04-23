@@ -42,6 +42,8 @@ class ImageConverter:
             print(e)
             return
 
+        # TODO: There is some problem with the depth frame. Most of pixels are showing depth 0.
+        #  Potentially because camera is too close to the table. Needs to be investigated.
         print(depth_image)
 
         if not self._are_frames_valid(color_image, depth_image):
