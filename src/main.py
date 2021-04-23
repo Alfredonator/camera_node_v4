@@ -26,9 +26,9 @@ class ImageConverter:
         self._box_detector = ArucoDetector()
         print("[INFO]: Initializing MoveIt and ObjectDetector - completed")
 
-        image_sub = message_filters.Subscriber("/camera/color/image_raw", Image)
-        depth_sub = message_filters.Subscriber("/camera/aligned_depth_to_color/image_raw", Image)
-        info_sub = message_filters.Subscriber("/camera/aligned_depth_to_color/camera_info", CameraInfo)
+        image_sub = message_filters.Subscriber("/camera/color/image_raw", Image, queue_size=5)
+        depth_sub = message_filters.Subscriber("/camera/aligned_depth_to_color/image_raw", Image, queue_size=5)
+        info_sub = message_filters.Subscriber("/camera/aligned_depth_to_color/camera_info", CameraInfo, queue_size=5)
 
         ts = message_filters.ApproximateTimeSynchronizer([image_sub, depth_sub, info_sub], 10, 0.5)
         ts.registerCallback(self.callback)
