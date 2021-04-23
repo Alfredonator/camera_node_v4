@@ -20,31 +20,36 @@ class ImageConverter:
     def __init__(self):
         print("[INFO]: Initializing MoveIt and ObjectDetector")
         # moveit_commander.roscpp_initialize(sys.argv)
-        # self.scene = moveit_commander.PlanningSceneInterface()
-        self.bridge = CvBridge()
-        self.communication = CommunicationHandlerCamera()
-        self.box_detector = ArucoDetector()
+        # self._scene = moveit_commander.PlanningSceneInterface()
+        self._bridge = CvBridge()
+        self._communication = CommunicationHandlerCamera()
+        self._box_detector = ArucoDetector()
         print("[INFO]: Initializing MoveIt and ObjectDetector - completed")
 
         image_sub = message_filters.Subscriber("/camera/color/image_raw", Image)
         depth_sub = message_filters.Subscriber("/camera/aligned_depth_to_color/image_raw", Image)
         info_sub = message_filters.Subscriber("/camera/aligned_depth_to_color/camera_info", CameraInfo)
 
-        self.ts = message_filters.ApproximateTimeSynchronizer([image_sub, depth_sub, info_sub], 10, 0.5)
-        self.ts.registerCallback(self.callback)
+        ts = message_filters.ApproximateTimeSynchronizer([image_sub, depth_sub, info_sub], 10, 0.5)
+        ts.registerCallback(self.callback)
 
     def callback(self, rgb_data, depth_data, camera_info):
 
         try:
-            color_image = cv2.resize(self.bridge.imgmsg_to_cv2(rgb_data, "bgr8"), (640, 480))
-            depth_image = cv2.resize(self.bridge.imgmsg_to_cv2(depth_data, "32FC1"), (640, 480))
+            color_image = cv2.resize(self._bridge.imgmsg_to_cv2(rgb_data, "bgr8"), (640, 480))
+            depth_image = cv2.resize(self._bridge.imgmsg_to_cv2(depth_data, "32FC1"), (640, 480))
         except CvBridgeError as e:
             print(e)
             return
 
+        print(depth_image)
+
+        if not self._are_frames_valid(color_image, depth_image):
+            return
+
         # get object and box detections
-        object_detections = self.communication.get_formatted_detections(color_image)
-        box_detections = self.box_detector.get_detected_boxes(color_image)
+        object_detections = self._communication.get_formatted_detections(color_image)
+        box_detections = self._box_detector.get_detected_boxes(color_image)
 
         # get 3D objects and 3D boxes list
         objects_3d_list = Utils.get_objects_3d_coordinates(object_detections, depth_image, camera_info)
@@ -53,8 +58,24 @@ class ImageConverter:
         self._print_detections(objects_3d_list, box_3d_list)
 
         # add all 3D objects and all 3D boxes to moveit planning scene
-        # self.update_planning_scene_with_detected_objects(objects_3d_list)
-        # self.update_planning_scene_with_detected_boxes(box_3d_list)
+        # self._update_planning_scene_with_detected_objects(objects_3d_list)
+        # self._update_planning_scene_with_detected_boxes(box_3d_list)
+
+    @staticmethod
+    def _are_frames_valid(color_frame, depth_frame):
+        if not color_frame.any() or not depth_frame.any():
+            return False
+
+        # row_color, col_color = color_frame.shape
+        # row_depth, col_depth = depth_frame.shape
+        #
+        # if row_color != 480 or col_color != 640:
+        #     return False
+        #
+        # if row_depth != 480 or col_depth != 640:
+        #     return False
+
+        return True
 
     @staticmethod
     def _print_detections(objects, boxes):
@@ -64,7 +85,7 @@ class ImageConverter:
         for box in boxes:
             print(box.container_name, box.x_middle, box.y_middle, box.z_middle)
 
-    def update_planning_scene_with_detected_objects(self, objects_list):
+    def _update_planning_scene_with_detected_objects(self, objects_list):
         object_pose = self._create_entity_pose_object()
 
         for identified_object in objects_list:
@@ -72,9 +93,9 @@ class ImageConverter:
             object_pose.pose.position.y = identified_object.y_middle
             object_pose.pose.position.z = identified_object.z_middle
             object_name = str(identified_object.obj_class)
-            self.scene.add_box(object_name, object_pose, size=(0.05, 0.05, 0.05))
+            self._scene.add_box(object_name, object_pose, size=(0.05, 0.05, 0.05))
 
-    def update_planning_scene_with_detected_boxes(self, box_list):
+    def _update_planning_scene_with_detected_boxes(self, box_list):
         box_pose = self._create_entity_pose_object()
 
         for identified_box in box_list:
@@ -83,7 +104,7 @@ class ImageConverter:
             box_pose.pose.position.y = identified_box.y
             box_pose.pose.position.z = identified_box.z
             box_name = str(identified_box.container_name)
-            self.scene.add_box(box_name, box_pose, size=(0.25, 0.1, 0.165))
+            self._scene.add_box(box_name, box_pose, size=(0.25, 0.1, 0.165))
 
     @staticmethod
     def _create_entity_pose_object():

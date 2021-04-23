@@ -9,6 +9,8 @@ class Utils:
     def _project_pixels_to_phys_coord(x_pixel, y_pixel, depth, camera_info):
         # converting to right unit (0.001 m)
         depth = depth / 1000
+        print(depth)
+
         intrinsics = Intrinsics(camera_info.K[2], camera_info.K[5], camera_info.K[0], camera_info.K[4])
 
         x_coordinate = depth * ((x_pixel - intrinsics.ppx) / intrinsics.fx)
@@ -29,11 +31,13 @@ class Utils:
         # camera_resolution_height = camera_info.height
         # camera_resolution_width = camera_info.width
 
-        camera_resolution_height = 640
-        camera_resolution_width = 480
+        camera_resolution_height = 480
+        camera_resolution_width = 640
 
         mid_x = (x_max - x_min) * camera_resolution_width
         mid_y = (y_max - y_min) * camera_resolution_height
+
+        print(mid_x, mid_y)
 
         return mid_x-1, mid_y-1
 

@@ -1,33 +1,14 @@
 #!/usr/bin/env python
 
-import json
 import socket
-import cv2
-
-
-class CommunicationUtils:
-    @staticmethod
-    def encode(color_image):
-        _, color = cv2.imencode('.JPG', color_image)
-
-        return color
-
-    @staticmethod
-    def decode(bytes_):
-        json_ = bytes_.decode()
-
-        return json.loads(json_)
-
-    @staticmethod
-    def get_object_length_in_bytes(bytes_):
-        return str(len(bytes_)).encode()
+from communication_utils import CommunicationUtils
 
 
 class CommunicationHandlerCamera:
     BUFFER_SIZE = 32768
     is_free = True
     host = "127.0.0.1"
-    port = 5002
+    port = 5001
 
     def __init__(self):
         self.s = socket.socket()
@@ -37,11 +18,26 @@ class CommunicationHandlerCamera:
     def __del__(self):
         self.s.close()
 
+    def get_formatted_detections(self, color_image):
+        to_send_bytes = CommunicationUtils.encode(color_image)
+        received_bytes = self._request_detections(to_send_bytes)
+
+        objects_list = CommunicationUtils.decode(received_bytes)
+
+        return objects_list
+
     def _request_detections(self, bytes_):
         self.s.sendall(CommunicationUtils.get_object_length_in_bytes(bytes_))
         print("Bytes_ length is ", {len(bytes_)})
-        print("Size of size encoded ", {len(CommunicationUtils.get_object_length_in_bytes(bytes_))})
+        # print("Size of size encoded ", {len(CommunicationUtils.get_object_length_in_bytes(bytes_))})
 
+        self._send_color_frame_bytes(bytes_)
+
+        detections_bytes = self.s.recv(self.BUFFER_SIZE)
+
+        return detections_bytes
+
+    def _send_color_frame_bytes(self, bytes_):
         _counter = 0
 
         while True:
@@ -60,16 +56,4 @@ class CommunicationHandlerCamera:
 
             _counter += self.BUFFER_SIZE
 
-        detections_bytes = self.s.recv(self.BUFFER_SIZE)
-        print("received detections: ", {detections_bytes})
-
-        return detections_bytes
-    
-    def get_formatted_detections(self, color_image):
-        to_send_bytes = CommunicationUtils.encode(color_image)
-        received_bytes = self._request_detections(to_send_bytes)
-
-        objects_list = CommunicationUtils.decode(received_bytes)
-
-        return objects_list
 
