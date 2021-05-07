@@ -9,7 +9,6 @@ class Utils:
     def _project_pixels_to_phys_coord(x_pixel, y_pixel, depth, camera_info):
         # converting to right unit (0.001 m)
         depth = depth / 1000
-        print(depth)
 
         intrinsics = Intrinsics(camera_info.K[2], camera_info.K[5], camera_info.K[0], camera_info.K[4])
 
@@ -20,12 +19,11 @@ class Utils:
 
     @staticmethod
     def _get_object_center_pixel_coordinates(detection_box, camera_info):
-        x_min = float(detection_box['x_min'])
-        x_max = float(detection_box['x_max'])
-        y_min = float(detection_box['y_min'])
-        y_max = float(detection_box['y_max'])
+        x_min = float(detection_box['left'])
+        x_max = float(detection_box['right'])
+        y_min = float(detection_box['top'])
+        y_max = float(detection_box['bottom'])
 
-        print("boxes: ", x_min, y_min, x_max, y_max)
         # camera_info shows info about RGB stream which has higher resolution than depth,
         # thus resolution has to be explicitly set to 640 x 480
         # camera_resolution_height = camera_info.height
@@ -34,10 +32,8 @@ class Utils:
         camera_resolution_height = 480
         camera_resolution_width = 640
 
-        mid_x = (x_max - x_min) * camera_resolution_width
-        mid_y = (y_max - y_min) * camera_resolution_height
-
-        print(mid_x, mid_y)
+        mid_x = ((x_max - x_min)/2 + x_min) * camera_resolution_width
+        mid_y = ((y_max - y_min)/2 + y_min) * camera_resolution_height
 
         return mid_x-1, mid_y-1
 
