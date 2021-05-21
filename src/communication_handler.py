@@ -28,9 +28,6 @@ class CommunicationHandlerCamera:
 
     def _request_detections(self, bytes_):
         self.s.sendall(CommunicationUtils.get_object_length_in_bytes(bytes_))
-        print("Bytes_ length is ", {len(bytes_)})
-        # print("Size of size encoded ", {len(CommunicationUtils.get_object_length_in_bytes(bytes_))})
-
         self._send_color_frame_bytes(bytes_)
 
         detections_bytes = self.s.recv(self.BUFFER_SIZE)
@@ -42,17 +39,14 @@ class CommunicationHandlerCamera:
 
         while True:
             if len(bytes_) - _counter < 0:
-                # print("breaking")
                 break
 
             if len(bytes_) - (_counter + self.BUFFER_SIZE) < 0:
                 to_be_send = bytes_[_counter:]
                 self.s.sendall(to_be_send)
-                # print("sending bytes from ", {_counter}, "to ", {_counter + (len(bytes_) - _counter)})
             else:
                 to_be_send = bytes_[_counter:(_counter + self.BUFFER_SIZE)]
                 self.s.sendall(to_be_send)
-                # print("sending bytes from, ", {_counter}, "to ", {_counter + self.BUFFER_SIZE})
 
             _counter += self.BUFFER_SIZE
 

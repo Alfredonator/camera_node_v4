@@ -11,15 +11,15 @@ class ArucoDetector:
 
     def get_detected_boxes(self, frame):
         container_kinds = {
-            'Potato': {
+            'Box_Potato': {
                 'aruco_left': 1,
                 'aruco_right': 41
             },
-            'Radish': {
+            'Box_Radish': {
                 'aruco_left': 2,
                 'aruco_right': 42
             },
-            'Lemon': {
+            'Box_Lemon': {
                 'aruco_left': 3,
                 'aruco_right': 43
             }

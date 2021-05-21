@@ -5,7 +5,7 @@ import cv2
 class CommunicationUtils:
     @staticmethod
     def encode(color_image):
-        _, color = cv2.imencode('.PNG', color_image)
+        _, color = cv2.imencode('.JPG', color_image)
 
         return color
 
