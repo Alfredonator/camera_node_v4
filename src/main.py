@@ -109,15 +109,29 @@ class ImageConverter:
         if not self.previous_objects_poses.keys().__contains__(_object.obj_class):
             self.previous_objects_poses[_object.obj_class] = {'x': _object.x_middle,
                                                               'y': _object.y_middle}
-            return True
+            return not self._is_other_object_nearby(_object)
         elif abs(self.previous_objects_poses[_object.obj_class]['x'] - _object.x_middle) > self._UPDATE_POSE_THRESHOLD \
                 or abs(self.previous_objects_poses[_object.obj_class]['y'] - _object.y_middle) > self._UPDATE_POSE_THRESHOLD:
 
             self.previous_objects_poses[_object.obj_class]['x'] = _object.x_middle
             self.previous_objects_poses[_object.obj_class]['y'] = _object.y_middle
-            return True
+            return not self._is_other_object_nearby(_object)
         else:
             return False
+
+    def _is_other_object_nearby(self, _object):
+        if len(self.previous_objects_poses.keys()) == 1:
+            return False
+
+        other_obj_dict = self.previous_objects_poses
+        other_obj_dict.pop(_object.obj_class, None)
+
+        for other_object in other_obj_dict:
+            if abs(other_object['x'] - _object.x_middle) < self._UPDATE_POSE_THRESHOLD or abs(
+                    other_object['y'] - _object.y_middle) < self._UPDATE_POSE_THRESHOLD:
+                return True
+
+        return False
 
     def _is_box_to_be_updated(self, box):
         if not self.previous_boxes_poses.keys().__contains__(box.container_name):
